@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语成语看图游戏 - HSK 5级</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .image-container {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 350px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .idiom-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            font-size: 130px; /* 放大30% */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3498db;
+        }
+        
+        .options-container {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .option {
+            padding: 15px 20px;
+            background: #f1f2f6;
+            border: 2px solid #dfe4ea;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        .option:hover {
+            background: #dfe4ea;
+            transform: translateY(-2px);
+        }
+        
+        .option.correct {
+            background: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        
+        .option.incorrect {
+            background: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+        
+        #next-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        #next-btn:hover:not(:disabled) {
+            background: #2980b9;
+        }
+        
+        #next-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        #restart-btn {
+            background: #e67e22;
+            color: white;
+        }
+        
+        #restart-btn:hover {
+            background: #d35400;
+        }
+        
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .idiom-image {
+                font-size: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>汉语成语看图游戏</h1>
+        <p class="subtitle">HSK 5级水平 - 选择与图片匹配的正确成语</p>
+    </header>
+    
+    <div class="container">
+        <div class="score-board">
+            <div class="score">得分: <span id="score">0</span></div>
+            <div class="question-count">题目: <span id="current">1</span>/<span id="total">10</span></div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="game-area">
+            <div class="image-container">
+                <div class="idiom-image" id="image">📚</div>
+            </div>
+            
+            <div class="options-container" id="options">
+                <!-- Options will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="explanation" id="explanation">
+            <strong>解释：</strong> <span id="explanation-text"></span>
+        </div>
+        
+        <div class="controls">
+            <button id="next-btn">下一题</button>
+            <button id="restart-btn">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // 成语数据
+        const idioms = [
+            {
+                id: 1,
+                text: "一日千里",
+                meaning: "形容进展极快",
+                image: "🚀", // 火箭表示快速前进
+                options: ["一日千里", "来日方长", "一言九鼎", "各有千秋"]
+            },
+            {
+                id: 2,
+                text: "一手遮天",
+                meaning: "一个人欺上瞒下，独揽大权",
+                image: "👐", // 手遮天的形象
+                options: ["一手遮天", "含英咀华", "见多识广", "人逢知己千杯少"]
+            },
+            {
+                id: 3,
+                text: "一孔之见",
+                meaning: "从一个小窟窿里所看到的。比喻狭隘片面的见解",
+                image: "👁️", // 单眼表示狭隘的视野
+                options: ["一孔之见", "志同道合", "见多识广", "各有千秋"]
+            },
+            {
+                id: 4,
+                text: "见多识广",
+                meaning: "见过的多，知道的广。形容阅历深，经验多",
+                image: "🌍", // 地球表示广泛的知识
+                options: ["见多识广", "一孔之见", "含英咀华", "来日方长"]
+            },
+            {
+                id: 5,
+                text: "志同道合",
+                meaning: "志向相同，道路一致。形容彼此理想、志趣相合",
+                image: "🤝", // 握手表示志趣相投
+                options: ["志同道合", "人逢知己千杯少", "一言九鼎", "一手遮天"]
+            },
+            {
+                id: 6,
+                text: "人逢知己千杯少",
+                meaning: "形容性情相投的人相聚在一起，总不感到厌倦",
+                image: "🥂", // 碰杯表示相聚畅饮
+                options: ["人逢知己千杯少", "志同道合", "各有千秋", "一日千里"]
+            },
+            {
+                id: 7,
+                text: "一言九鼎",
+                meaning: "一句话就有九鼎重。比喻说话力量大，能起很大作用",
+                image: "⚖️", // 天平表示分量重
+                options: ["一言九鼎", "一手遮天", "一孔之见", "含英咀华"]
+            },
+            {
+                id: 8,
+                text: "含英咀华",
+                meaning: "比喻品味、体会诗文中的精华",
+                image: "📖", // 书本表示品味诗文
+                options: ["含英咀华", "见多识广", "来日方长", "一日千里"]
+            },
+            {
+                id: 9,
+                text: "各有千秋",
+                meaning: "各有各的存在的价值。比喻各人有各人的长处",
+                image: "🌟", // 星星表示各有亮点
+                options: ["各有千秋", "一言九鼎", "志同道合", "人逢知己千杯少"]
+            },
+            {
+                id: 10,
+                text: "来日方长",
+                meaning: "将来的日子还长着呢。表示事有可为或将来还有机会",
+                image: "📅", // 日历表示未来的日子
+                options: ["来日方长", "一日千里", "一手遮天", "一孔之见"]
+            }
+        ];
+
+        // 游戏状态
+        let currentQuestion = 0;
+        let score = 0;
+        let gameCompleted = false;
+
+        // DOM元素
+        const imageElement = document.getElementById('image');
+        const optionsContainer = document.getElementById('options');
+        const scoreElement = document.getElementById('score');
+        const currentElement = document.getElementById('current');
+        const totalElement = document.getElementById('total');
+        const progressElement = document.getElementById('progress');
+        const nextButton = document.getElementById('next-btn');
+        const restartButton = document.getElementById('restart-btn');
+        const explanationElement = document.getElementById('explanation');
+        const explanationTextElement = document.getElementById('explanation-text');
+
+        // 初始化游戏
+        function initGame() {
+            currentQuestion = 0;
+            score = 0;
+            gameCompleted = false;
+            
+            totalElement.textContent = idioms.length;
+            updateScore();
+            loadQuestion();
+        }
+
+        // 随机打乱数组（Fisher-Yates 洗牌算法）
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 加载问题
+        function loadQuestion() {
+            if (currentQuestion >= idioms.length) {
+                endGame();
+                return;
+            }
+            
+            const idiom = idioms[currentQuestion];
+            imageElement.textContent = idiom.image;
+            currentElement.textContent = currentQuestion + 1;
+            progressElement.style.width = `${((currentQuestion + 1) / idioms.length) * 100}%`;
+            
+            // 清空选项容器
+            optionsContainer.innerHTML = '';
+            
+            // 随机打乱选项顺序
+            const shuffledOptions = shuffleArray([...idiom.options]);
+            
+            // 添加选项
+            shuffledOptions.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', () => checkAnswer(option, idiom.text, optionElement));
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // 隐藏解释
+            explanationElement.style.display = 'none';
+            
+            // 禁用下一题按钮，直到选择答案
+            nextButton.disabled = true;
+        }
+
+        // 检查答案
+        function checkAnswer(selected, correct, element) {
+            const options = document.querySelectorAll('.option');
+            
+            // 禁用所有选项
+            options.forEach(option => {
+                option.removeEventListener('click', () => {});
+            });
+            
+            // 显示正确答案
+            options.forEach(option => {
+                if (option.textContent === correct) {
+                    option.classList.add('correct');
+                }
+            });
+            
+            // 如果答案错误，标记错误答案
+            if (selected !== correct) {
+                element.classList.add('incorrect');
+            } else {
+                score++;
+                updateScore();
+            }
+            
+            // 显示解释
+            explanationTextElement.textContent = idioms[currentQuestion].meaning;
+            explanationElement.style.display = 'block';
+            
+            // 启用下一题按钮
+            nextButton.disabled = false;
+        }
+
+        // 更新分数
+        function updateScore() {
+            scoreElement.textContent = score;
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameCompleted = true;
+            imageElement.textContent = '🎮';
+            optionsContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <h2>游戏结束!</h2>
+                    <p>你的得分: ${score} / ${idioms.length}</p>
+                    <p>${getPerformanceMessage(score, idioms.length)}</p>
+                </div>
+            `;
+            explanationElement.style.display = 'none';
+            nextButton.disabled = true;
+        }
+
+        // 根据得分获取表现消息
+        function getPerformanceMessage(score, total) {
+            const percentage = (score / total) * 100;
+            
+            if (percentage >= 90) return "太棒了！你的汉语水平非常高！";
+            if (percentage >= 70) return "很好！你对这些成语掌握得不错！";
+            if (percentage >= 50) return "不错！继续学习你会更厉害！";
+            return "需要多加练习，继续努力！";
+        }
+
+        // 事件监听
+        nextButton.addEventListener('click', () => {
+            if (gameCompleted) return;
+            
+            currentQuestion++;
+            loadQuestion();
+        });
+
+        restartButton.addEventListener('click', initGame);
+
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>
